@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список задач — TaskFlow</title>
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f8f9fa;
+            --text: #1a1a2e;
+            --text-secondary: #555;
+            --text-muted: #888;
+            --accent: #5b6af0;
+            --accent-hover: #4a56d4;
+            --accent-light: #eef0ff;
+            --danger: #e74c3c;
+            --danger-hover: #c0392b;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --warning-bg: #fff8e6;
+            --overdue-bg: #ffeaea;
+            --border: #e0e0e0;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+            --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.18), 0 8px 20px rgba(0, 0, 0, 0.08);
+            --radius-sm: 10px;
+            --radius: 16px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            --font: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            --card-completed-opacity: 0.65;
+            --modal-backdrop: rgba(0, 0, 0, 0.5);
+            --toast-bg: #1a1a2e;
+            --toast-text: #fff;
+            --scrollbar-thumb: #c8c8d0;
+            --scrollbar-track: transparent;
+            --badge-bg: #e8e9f0;
+            --badge-text: #555;
+            --input-bg: #f8f9fa;
+            --input-border: #ddd;
+            --input-focus-border: #5b6af0;
+            --photo-drop-bg: #fafbfc;
+            --photo-drop-border: #dde;
+            --filter-active-bg: #5b6af0;
+            --filter-active-text: #fff;
+            --filter-hover-bg: #eef0ff;
+            --divider: #eee;
+            --card-stripe: transparent;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #22223a;
+            --text: #e8e8f0;
+            --text-secondary: #b0b0c0;
+            --text-muted: #7a7a90;
+            --accent: #7c8bf0;
+            --accent-hover: #9aa5f8;
+            --accent-light: #1e2040;
+            --danger: #ff5c5c;
+            --danger-hover: #e04848;
+            --success: #3dd68c;
+            --warning: #f5a623;
+            --warning-bg: #2a2218;
+            --overdue-bg: #2a1818;
+            --border: #2a2a3e;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+            --shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.25);
+            --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.5), 0 8px 20px rgba(0, 0, 0, 0.3);
+            --modal-backdrop: rgba(0, 0, 0, 0.7);
+            --toast-bg: #2a2a40;
+            --toast-text: #e8e8f0;
+            --scrollbar-thumb: #3a3a50;
+            --scrollbar-track: #1a1a2e;
+            --badge-bg: #2a2a3e;
+            --badge-text: #b0b0c0;
+            --input-bg: #1e1e32;
+            --input-border: #333350;
+            --input-focus-border: #7c8bf0;
+            --photo-drop-bg: #1e1e32;
+            --photo-drop-border: #333350;
+            --filter-active-bg: #7c8bf0;
+            --filter-active-text: #fff;
+            --filter-hover-bg: #252540;
+            --divider: #2a2a3e;
+            --card-stripe: rgba(255, 255, 255, 0.015);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            transition: background var(--transition), color var(--transition);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 3px;
+        }
+
+        /* Background decoration */
+        .bg-decoration {
+            position: fixed;
+            top: -200px;
+            right: -150px;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(91, 106, 240, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            transition: background var(--transition);
+        }
+        [data-theme="dark"] .bg-decoration {
+            background: radial-gradient(circle, rgba(124, 139, 240, 0.08) 0%, transparent 70%);
+        }
+        .bg-decoration-2 {
+            position: fixed;
+            bottom: -180px;
+            left: -120px;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(91, 106, 240, 0.04) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            transition: background var(--transition);
+        }
+
+        /* Container */
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 20px 20px 100px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 20px 0 8px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--bg);
+            transition: background var(--transition);
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            padding-bottom: 16px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, #5b6af0, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(91, 106, 240, 0.35);
+            flex-shrink: 0;
+            transition: box-shadow var(--transition);
+        }
+        [data-theme="dark"] .logo-icon {
+            box-shadow: 0 4px 16px rgba(124, 139, 240, 0.4);
+        }
+        .header-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            transition: color var(--transition);
+            white-space: nowrap;
+        }
+        .header-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            transition: color var(--transition);
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: all var(--transition-fast);
+            font-family: var(--font);
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+            position: relative;
+            overflow: hidden;
+            outline: none;
+            text-decoration: none;
+        }
+        .btn:active {
+            transform: scale(0.96);
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(91, 106, 240, 0.3);
+        }
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 6px 20px rgba(91, 106, 240, 0.4);
+            transform: translateY(-1px);
+        }
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            color: var(--text);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-sm);
+        }
+        .btn-icon:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: var(--shadow);
+        }
+        .btn-icon.theme-toggle {
+            font-size: 1.2rem;
+            width: 42px;
+            height: 42px;
+        }
+        .btn-danger {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid transparent;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+        }
+        .btn-danger:hover {
+            background: var(--overdue-bg);
+            border-color: var(--danger);
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.78rem;
+            border-radius: 8px;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 8px 0 16px;
+        }
+        .stat-chip {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+            cursor: default;
+            white-space: nowrap;
+        }
+        .stat-chip strong {
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .stat-chip.overdue-chip strong {
+            color: var(--danger);
+        }
+
+        /* Filter tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        .filter-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            font-family: var(--font);
+            white-space: nowrap;
+            user-select: none;
+        }
+        .filter-tab:hover {
+            background: var(--filter-hover-bg);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .filter-tab.active {
+            background: var(--filter-active-bg);
+            color: var(--filter-active-text);
+            border-color: var(--filter-active-bg);
+            box-shadow: var(--shadow-sm);
+            font-weight: 600;
+        }
+        .filter-count {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 10px;
+            padding: 1px 8px;
+            font-size: 0.75rem;
+            margin-left: 4px;
+            font-weight: 600;
+        }
+        .filter-tab.active .filter-count {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Task list */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 100px;
+        }
+
+        /* Task card */
+        .task-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+            animation: fadeInUp 0.35s ease forwards;
+            border-left: 4px solid var(--card-stripe);
+        }
+        .task-card:hover {
+            box-shadow: var(--shadow);
+            transform: translateY(-1px);
+            border-color: #c8c8d8;
+        }
+        [data-theme="dark"] .task-card:hover {
+            border-color: #444460;
+        }
+        .task-card.overdue {
+            border-left: 4px solid var(--danger);
+            background: var(--overdue-bg);
+        }
+        .task-card.due-soon {
+            border-left: 4px solid var(--warning);
+            background: var(--warning-bg);
+        }
+        .task-card.completed {
+            opacity: var(--card-completed-opacity);
+            border-left: 4px solid var(--success);
+        }
+        .task-card.completed .task-title {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+        .task-card.removing {
+            animation: fadeOutRight 0.3s ease forwards;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+        }
+
+        /* Checkbox */
+        .checkbox-wrapper {
+            flex-shrink: 0;
+            padding-top: 2px;
+        }
+        .custom-checkbox {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            background: var(--bg-secondary);
+            flex-shrink: 0;
+            position: relative;
+            user-select: none;
+        }
+        .custom-checkbox:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(91, 106, 240, 0.1);
+        }
+        .custom-checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+            box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.15);
+        }
+        .custom-checkbox.checked::after {
+            content: '✓';
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .custom-checkbox.checked:hover {
+            border-color: var(--danger);
+            background: var(--danger);
+            box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.15);
+        }
+        .custom-checkbox.checked:hover::after {
+            content: '✕';
+            font-size: 12px;
+        }
+
+        /* Task content */
+        .task-content {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .task-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text);
+            word-break: break-word;
+            transition: color var(--transition);
+            line-height: 1.3;
+        }
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+        .task-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+        .task-meta-item.deadline-badge {
+            font-weight: 600;
+        }
+        .task-meta-item.overdue-badge {
+            background: var(--overdue-bg);
+            color: var(--danger);
+            font-weight: 700;
+            animation: pulse-badge 2s infinite;
+        }
+        @keyframes pulse-badge {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+        .task-meta-item.soon-badge {
+            background: var(--warning-bg);
+            color: var(--warning);
+            font-weight: 600;
+        }
+
+        /* Photo thumbnail */
+        .task-photo-thumb {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+            transition: all var(--transition-fast);
+            background: var(--bg-tertiary);
+        }
+        .task-photo-thumb:hover {
+            border-color: var(--accent);
+            transform: scale(1.08);
+            box-shadow: var(--shadow);
+            z-index: 2;
+        }
+        .task-photo-placeholder {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-tertiary);
+            border: 2px dashed var(--border);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+        .task-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+            align-items: center;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
+            transition: color var(--transition);
+        }
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.7;
+        }
+        .empty-state h3 {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+        .empty-state p {
+            font-size: 0.9rem;
+            max-width: 350px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* Floating add button */
+        .fab {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5b6af0, #8b5cf6);
+            color: #fff;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-xl);
+            z-index: 20;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .fab:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 24px 56px rgba(91, 106, 240, 0.45);
+        }
+        .fab:active {
+            transform: scale(0.92);
+        }
+        @media (max-width: 600px) {
+            .fab {
+                bottom: 20px;
+                right: 16px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--modal-backdrop);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            padding: 28px 24px 24px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            transition: all var(--transition);
+            transform: translateY(20px) scale(0.96);
+            border: 1px solid var(--border);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-overlay.active .modal {
+            transform: translateY(0) scale(1);
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover {
+            background: var(--overdue-bg);
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+            letter-spacing: 0.01em;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: var(--font);
+            transition: all var(--transition-fast);
+            outline: none;
+        }
+        .form-input:focus {
+            border-color: var(--input-focus-border);
+            box-shadow: 0 0 0 4px rgba(91, 106, 240, 0.08);
+            background: var(--bg-secondary);
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .photo-upload-area {
+            border: 2px dashed var(--photo-drop-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            background: var(--photo-drop-bg);
+            position: relative;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .photo-upload-area:hover {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+        .photo-upload-area.has-photo {
+            border-style: solid;
+            border-color: var(--accent);
+            padding: 8px;
+        }
+        .photo-preview {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: var(--radius-sm);
+            object-fit: contain;
+        }
+        .photo-upload-icon {
+            font-size: 2rem;
+            opacity: 0.6;
+        }
+        .photo-upload-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .photo-remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            transition: all var(--transition-fast);
+        }
+        .photo-remove-btn:hover {
+            background: var(--danger-hover);
+            transform: scale(1.1);
+        }
+        .form-input[type="file"] {
+            display: none;
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            background: var(--toast-bg);
+            color: var(--toast-text);
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            font-weight: 500;
+            font-size: 0.9rem;
+            pointer-events: auto;
+            animation: slideInRight 0.4s ease forwards;
+            max-width: 380px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid var(--accent);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .toast.removing {
+            animation: slideOutRight 0.3s ease forwards;
+        }
+        .toast.warning-toast {
+            border-left-color: var(--warning);
+        }
+        .toast.danger-toast {
+            border-left-color: var(--danger);
+        }
+        .toast-icon {
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        @keyframes slideInRight {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        }
+
+        /* Photo lightbox */
+        .lightbox-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .lightbox-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .lightbox-image {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-xl);
+            transform: scale(0.9);
+            transition: transform var(--transition);
+            object-fit: contain;
+        }
+        .lightbox-overlay.active .lightbox-image {
+            transform: scale(1);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 12px 12px 90px;
+            }
+            .header {
+                padding: 10px 0 12px;
+            }
+            .header-title {
+                font-size: 1.3rem;
+            }
+            .task-card {
+                padding: 12px 14px;
+                gap: 10px;
+                border-radius: var(--radius-sm);
+            }
+            .task-photo-thumb,
+            .task-photo-placeholder {
+                width: 40px;
+                height: 40px;
+                border-radius: 8px;
+            }
+            .modal {
+                padding: 20px 16px;
+                border-radius: var(--radius-lg);
+                max-width: 100%;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            .toast-container {
+                top: 10px;
+                right: 8px;
+                left: 8px;
+            }
+            .toast {
+                max-width: 100%;
+                font-size: 0.82rem;
+                padding: 12px 14px;
+            }
+            .fab {
+                bottom: 16px;
+                right: 12px;
+            }
+            .stats-bar {
+                gap: 6px;
+            }
+            .stat-chip {
+                font-size: 0.72rem;
+                padding: 5px 10px;
+            }
+            .filter-tab {
+                font-size: 0.78rem;
+                padding: 6px 12px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .header-title {
+                font-size: 1.1rem;
+            }
+            .logo-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+            .task-title {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background decorations -->
+    <div class="bg-decoration"></div>
+    <div class="bg-decoration-2"></div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Photo lightbox -->
+    <div class="lightbox-overlay" id="lightboxOverlay">
+        <img class="lightbox-image" id="lightboxImage" src="" alt="Фото задачи">
+    </div>
+
+    <!-- Main container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header" id="header">
+            <div class="header-left">
+                <div class="logo-icon">📋</div>
+                <div>
+                    <h1 class="header-title">TaskFlow</h1>
+                    <p class="header-subtitle">Управляй задачами легко</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-icon theme-toggle" id="themeToggle" title="Переключить тему" aria-label="Переключить тему">
+                    🌙
+                </button>
+                <button class="btn btn-primary" id="addTaskBtnTop" title="Добавить задачу">
+                    <span>＋</span> Новая задача
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-bar" id="statsBar">
+            <span class="stat-chip">📌 Всего: <strong id="statTotal">0</strong></span>
+            <span class="stat-chip">✅ Выполнено: <strong id="statCompleted">0</strong></span>
+            <span class="stat-chip overdue-chip">⚠️ Просрочено: <strong id="statOverdue">0</strong></span>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="filter-tabs" id="filterTabs">
+            <button class="filter-tab active" data-filter="all">Все<span class="filter-count" id="countAll">0</span></button>
+            <button class="filter-tab" data-filter="active">Активные<span class="filter-count" id="countActive">0</span></button>
+            <button class="filter-tab" data-filter="completed">Выполненные<span class="filter-count" id="countCompleted">0</span></button>
+        </div>
+
+        <!-- Task list -->
+        <div class="task-list" id="taskList">
+            <!-- Tasks rendered here -->
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" id="emptyState">
+            <div class="empty-state-icon">📝</div>
+            <h3>Список задач пуст</h3>
+            <p>Нажмите кнопку «Новая задача», чтобы добавить первую задачу с фото, датой и временем выполнения.</p>
+        </div>
+    </div>
+
+    <!-- Floating action button -->
+    <button class="fab" id="fabAdd" title="Добавить задачу" aria-label="Добавить задачу">＋</button>
+
+    <!-- Add/Edit Task Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Новая задача</h2>
+                <button class="modal-close" id="modalClose" title="Закрыть">✕</button>
+            </div>
+            <form id="taskForm" autocomplete="off">
+                <div class="form-group">
+                    <label class="form-label" for="taskTitle">Название задачи *</label>
+                    <input type="text" class="form-input" id="taskTitle" placeholder="Например: Купить продукты" required maxlength="200">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="taskDate">Дата выполнения *</label>
+                        <input type="date" class="form-input" id="taskDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="taskTime">Время выполнения *</label>
+                        <input type="time" class="form-input" id="taskTime" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Фото к задаче</label>
+                    <div class="photo-upload-area" id="photoUploadArea">
+                        <span class="photo-upload-icon">🖼️</span>
+                        <span class="photo-upload-text">Нажмите, чтобы выбрать фото</span>
+                        <span style="font-size:0.7rem;color:var(--text-muted);">JPEG, PNG, WebP • макс. 10 МБ</span>
+                        <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp,image/gif">
+                    </div>
+                </div>
+                <input type="hidden" id="editingTaskId" value="">
+                <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:1rem;margin-top:8px;" id="submitBtn">
+                    💾 Сохранить задачу
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ──────────────────────────────────────
+            // DOM Elements
+            // ──────────────────────────────────────
+            const taskList = document.getElementById('taskList');
+            const emptyState = document.getElementById('emptyState');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modalTitle');
+            const taskForm = document.getElementById('taskForm');
+            const taskTitleInput = document.getElementById('taskTitle');
+            const taskDateInput = document.getElementById('taskDate');
+            const taskTimeInput = document.getElementById('taskTime');
+            const photoInput = document.getElementById('photoInput');
+            const photoUploadArea = document.getElementById('photoUploadArea');
+            const editingTaskId = document.getElementById('editingTaskId');
+            const submitBtn = document.getElementById('submitBtn');
+            const modalClose = document.getElementById('modalClose');
+            const fabAdd = document.getElementById('fabAdd');
+            const addTaskBtnTop = document.getElementById('addTaskBtnTop');
+            const themeToggle = document.getElementById('themeToggle');
+            const lightboxOverlay = document.getElementById('lightboxOverlay');
+            const lightboxImage = document.getElementById('lightboxImage');
+            const toastContainer = document.getElementById('toastContainer');
+            const filterTabs = document.getElementById('filterTabs');
+            const statTotal = document.getElementById('statTotal');
+            const statCompleted = document.getElementById('statCompleted');
+            const statOverdue = document.getElementById('statOverdue');
+            const countAll = document.getElementById('countAll');
+            const countActive = document.getElementById('countActive');
+            const countCompleted = document.getElementById('countCompleted');
+
+            // ──────────────────────────────────────
+            // State
+            // ──────────────────────────────────────
+            let tasks = [];
+            let currentFilter = 'all';
+            let currentPhotoData = null; // base64 data URL of selected photo
+            let notifiedTaskIds = new Set(); // session-based, tracks notified tasks
+            const STORAGE_KEY = 'taskflow_tasks';
+            const THEME_KEY = 'taskflow_theme';
+            const REMINDER_CHECK_INTERVAL = 30000; // 30 seconds
+            const MAX_PHOTO_DIMENSION = 600;
+
+            // ──────────────────────────────────────
+            // Local Storage
+            // ──────────────────────────────────────
+            function saveTasks() {
+                try {
+                    const serialized = JSON.stringify(tasks);
+                    localStorage.setItem(STORAGE_KEY, serialized);
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError') {
+                        showToast('⚠️', 'Хранилище переполнено! Удалите старые задачи или уменьшите размер фото.',
+                            'warning-toast');
+                    }
+                    console.warn('Не удалось сохранить задачи:', e);
+                }
+            }
+
+            function loadTasks() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) {
+                            tasks = parsed;
+                            // Validate and clean up tasks
+                            tasks = tasks.filter(t => t && typeof t.title === 'string' && t.id);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Не удалось загрузить задачи:', e);
+                    tasks = [];
+                }
+            }
+
+            function saveTheme(theme) {
+                localStorage.setItem(THEME_KEY, theme);
+            }
+
+            function loadTheme() {
+                return localStorage.getItem(THEME_KEY) || 'light';
+            }
+
+            // ──────────────────────────────────────
+            // Theme
+            // ──────────────────────────────────────
+            function applyTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+                saveTheme(theme);
+            }
+
+            function toggleTheme() {
+                const current = document.documentElement.getAttribute('data-theme') || 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                applyTheme(next);
+                showToast('🎨', next === 'dark' ? 'Включена тёмная тема' : 'Включена светлая тема', '');
+            }
+
+            // ──────────────────────────────────────
+            // Toast notifications
+            // ──────────────────────────────────────
+            function showToast(icon, message, className = '') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${className}`;
+                toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span>`;
+                toast.addEventListener('click', () => removeToast(toast));
+                toastContainer.appendChild(toast);
+
+                // Auto-remove after 4 seconds
+                const timer = setTimeout(() => removeToast(toast), 4000);
+                toast._timer = timer;
+            }
+
+            function removeToast(toast) {
+                if (toast._removing) return;
+                toast._removing = true;
+                clearTimeout(toast._timer);
+                toast.classList.add('removing');
+                setTimeout(() => {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 300);
+            }
+
+            // ──────────────────────────────────────
+            // Browser Notification API
+            // ──────────────────────────────────────
+            function requestNotificationPermission() {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    // Request permission on first user interaction
+                    const handler = () => {
+                        Notification.requestPermission();
+                        document.removeEventListener('click', handler);
+                    };
+                    document.addEventListener('click', handler, { once: true });
+                }
+            }
+
+            function sendBrowserNotification(title, body, icon = '📋') {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    try {
+                        const notif = new Notification(title, {
+                            body: body,
+                            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📋</text></svg>',
+                            tag: 'taskflow-reminder',
+                            requireInteraction: true,
+                            vibrate: [200, 100, 200],
+                        });
+                        setTimeout(() => notif.close(), 8000);
+                    } catch (e) {
+                        console.warn('Не удалось отправить уведомление:', e);
+                    }
+                }
+            }
+
+            // ──────────────────────────────────────
+            // Audio beep for reminders
+            // ──────────────────────────────────────
+            function playBeep() {
+                try {
+                    const audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+                    oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime + 0.1);
+                    oscillator.frequency.setValueAtTime(800, audioCtx.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                    oscillator.start(audioCtx.currentTime);
+                    oscillator.stop(audioCtx.currentTime + 0.4);
+                    setTimeout(() => audioCtx.close(), 500);
+                } catch (e) {
+                    // Silently fail if audio not supported
+                }
+            }
+
+            // ──────────────────────────────────────
+            // Reminder checker
+            // ──────────────────────────────────────
+            function checkReminders() {
+                const now = Date.now();
+                let triggeredAny = false;
+
+                tasks.forEach(task => {
+                    if (task.completed) return;
+                    if (!task.deadlineTimestamp) return;
+                    if (notifiedTaskIds.has(task.id)) return;
+
+                    const deadline = task.deadlineTimestamp;
+                    const diffMs = deadline - now;
+                    const diffMinutes = diffMs / 60000;
+
+                    // Trigger if deadline is within the last check interval (recently passed or just now)
+                    if (diffMs <= 0 && diffMinutes > -5) {
+                        // Deadline just passed or is now
+                        notifiedTaskIds.add(task.id);
+                        const msg = `⏰ Наступил срок выполнения: «${task.title}»`;
+                        showToast('🔔', msg, 'danger-toast');
+                        sendBrowserNotification('⏰ Срок задачи!', `«${task.title}» — время вышло!`);
+                        playBeep();
+                        triggeredAny = true;
+                    } else if (diffMinutes > 0 && diffMinutes <= 2) {
+                        // Due within 2 minutes
+                        notifiedTaskIds.add(task.id);
+                        const mins = Math.round(diffMinutes);
+                        const msg = `⏳ Скоро дедлайн: «${task.title}» (через ~${mins} мин)`;
+                        showToast('⏳', msg, 'warning-toast');
+                        sendBrowserNotification('⏳ Скоро дедлайн!',
+                            `«${task.title}» — через ${mins} мин.`);
+                        playBeep();
+                        triggeredAny = true;
+                    }
+                });
+
+                if (triggeredAny) {
+                    renderAll();
+                }
+            }
+
+            // ──────────────────────────────────────
+            // Photo handling
+            // ──────────────────────────────────────
+            function compressImage(file) {
+                return new Promise((resolve, reject) => {
+                    if (!file.type.startsWith('image/')) {
+                        reject(new Error('Не изображение'));
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = function() {
+                            let { width, height } = img;
+                            if (width <= MAX_PHOTO_DIMENSION && height <= MAX_PHOTO_DIMENSION) {
+                                // No resize needed, just convert
+                                const canvas = document.createElement('canvas');
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0);
+                                resolve(canvas.toDataURL('image/jpeg', 0.75));
+                                return;
+                            }
+                            // Resize
+                            const ratio = Math.min(MAX_PHOTO_DIMENSION / width, MAX_PHOTO_DIMENSION / height);
+                            width = Math.round(width * ratio);
+                            height = Math.round(height * ratio);
+                            const canvas = document.createElement('canvas');
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            resolve(canvas.toDataURL('image/jpeg', 0.7));
+                        };
+                        img.onerror = () => reject(new Error('Ошибка загрузки изображения'));
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = () => reject(new Error('Ошибка чтения файла'));
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            function updatePhotoPreview(dataUrl) {
+                // Remove existing preview
+                const existingPreview = photoUploadArea.querySelector('.photo-preview');
+                const existingRemoveBtn = photoUploadArea.querySelector('.photo-remove-btn');
+                if (existingPreview) existingPreview.remove();
+                if (existingRemoveBtn) existingRemoveBtn.remove();
+
+                if (dataUrl) {
+                    const img = document.createElement('img');
+                    img.className = 'photo-preview';
+                    img.src = dataUrl;
+                    photoUploadArea.appendChild(img);
+                    photoUploadArea.classList.add('has-photo');
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'photo-remove-btn';
+                    removeBtn.textContent = '✕';
+                    removeBtn.type = 'button';
+                    removeBtn.title = 'Удалить фото';
+                    removeBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        clearPhotoSelection();
+                    });
+                    photoUploadArea.appendChild(removeBtn);
+
+                    const uploadText = photoUploadArea.querySelector('.photo-upload-text');
+                    if (uploadText) uploadText.textContent = 'Фото выбрано ✓';
+                    const uploadIcon = photoUploadArea.querySelector('.photo-upload-icon');
+                    if (uploadIcon) uploadIcon.textContent = '✅';
+                } else {
+                    photoUploadArea.classList.remove('has-photo');
+                    const uploadText = photoUploadArea.querySelector('.photo-upload-text');
+                    if (uploadText) uploadText.textContent = 'Нажмите, чтобы выбрать фото';
+                    const uploadIcon = photoUploadArea.querySelector('.photo-upload-icon');
+                    if (uploadIcon) uploadIcon.textContent = '🖼️';
+                }
+            }
+
+            function clearPhotoSelection() {
+                currentPhotoData = null;
+                photoInput.value = '';
+                updatePhotoPreview(null);
+            }
+
+            // ──────────────────────────────────────
+            // Modal
+            // ──────────────────────────────────────
+            function openModal(taskToEdit = null) {
+                if (taskToEdit) {
+                    modalTitle.textContent = 'Редактировать задачу';
+                    submitBtn.textContent = '💾 Обновить задачу';
+                    taskTitleInput.value = taskToEdit.title || '';
+                    editingTaskId.value = taskToEdit.id;
+                    if (taskToEdit.deadlineDate) taskDateInput.value = taskToEdit.deadlineDate;
+                    if (taskToEdit.deadlineTime) taskTimeInput.value = taskToEdit.deadlineTime;
+                    currentPhotoData = taskToEdit.photo || null;
+                    updatePhotoPreview(currentPhotoData);
+                } else {
+                    modalTitle.textContent = 'Новая задача';
+                    submitBtn.textContent = '💾 Сохранить задачу';
+                    taskTitleInput.value = '';
+                    editingTaskId.value = '';
+                    // Set default date to tomorrow
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    taskDateInput.value = tomorrow.toISOString().split('T')[0];
+                    taskTimeInput.value = '12:00';
+                    clearPhotoSelection();
+                }
+                modalOverlay.classList.add('active');
+                setTimeout(() => taskTitleInput.focus(), 200);
+            }
+
+            function closeModal() {
+                modalOverlay.classList.remove('active');
+                clearPhotoSelection();
+                editingTaskId.value = '';
+                taskForm.reset();
+                // Restore default values for next open
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                taskDateInput.value = tomorrow.toISOString().split('T')[0];
+                taskTimeInput.value = '12:00';
+            }
+
+            // ──────────────────────────────────────
+            // Task CRUD
+            // ──────────────────────────────────────
+            function createTask(title, deadlineDate, deadlineTime, photo) {
+                const deadlineTimestamp = new Date(`${deadlineDate}T${deadlineTime}:00`).getTime();
+                return {
+                    id: crypto.randomUUID ? crypto.randomUUID() : 'id_' + Date.now() + '_' + Math.random().toString(36)
+                        .substr(2, 9),
+                    title: title.trim(),
+                    deadlineDate: deadlineDate,
+                    deadlineTime: deadlineTime,
+                    deadlineTimestamp: deadlineTimestamp,
+                    photo: photo || null,
+                    completed: false,
+                    createdAt: Date.now(),
+                };
+            }
+
+            function addTask(task) {
+                tasks.unshift(task);
+                saveTasks();
+                renderAll();
+                // If the new task has a deadline, it becomes eligible for reminders
+                checkReminders();
+            }
+
+            function updateTask(id, updates) {
+                const index = tasks.findIndex(t => t.id === id);
+                if (index === -1) return;
+                tasks[index] = { ...tasks[index], ...updates };
+                // If deadline changed, recalculate timestamp
+                if (updates.deadlineDate || updates.deadlineTime) {
+                    const d = updates.deadlineDate || tasks[index].deadlineDate;
+                    const t = updates.deadlineTime || tasks[index].deadlineTime;
+                    tasks[index].deadlineTimestamp = new Date(`${d}T${t}:00`).getTime();
+                }
+                // If task was un-completed, allow re-notification
+                if (updates.completed === false && notifiedTaskIds.has(id)) {
+                    notifiedTaskIds.delete(id);
+                }
+                saveTasks();
+                renderAll();
+            }
+
+            function deleteTask(id) {
+                const card = document.querySelector(`[data-task-id="${id}"]`);
+                if (card) {
+                    card.classList.add('removing');
+                    setTimeout(() => {
+                        tasks = tasks.filter(t => t.id !== id);
+                        notifiedTaskIds.delete(id);
+                        saveTasks();
+                        renderAll();
+                    }, 280);
+                } else {
+                    tasks = tasks.filter(t => t.id !== id);
+                    notifiedTaskIds.delete(id);
+                    saveTasks();
+                    renderAll();
+                }
+            }
+
+            function toggleTaskCompletion(id) {
+                const task = tasks.find(t => t.id === id);
+                if (!task) return;
+                const newCompleted = !task.completed;
+                updateTask(id, { completed: newCompleted });
+                if (newCompleted) {
+                    showToast('✅', `Задача «${task.title}» выполнена!`, '');
+                } else {
+                    showToast('↩️', `Задача «${task.title}» возвращена в активные`, '');
+                }
+            }
+
+            // ──────────────────────────────────────
+            // Rendering
+            // ──────────────────────────────────────
+            function getFilteredTasks() {
+                const now = Date.now();
+                let filtered;
+                switch (currentFilter) {
+                    case 'active':
+                        filtered = tasks.filter(t => !t.completed);
+                        break;
+                    case 'completed':
+                        filtered = tasks.filter(t => t.completed);
+                        break;
+                    default:
+                        filtered = [...tasks];
+                }
+                // Sort: overdue first, then by deadline ascending, completed at bottom
+                filtered.sort((a, b) => {
+                    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                    if (!a.completed && !b.completed) {
+                        const aOverdue = a.deadlineTimestamp < now;
+                        const bOverdue = b.deadlineTimestamp < now;
+                        if (aOverdue !== bOverdue) return aOverdue ? -1 : 1;
+                        return a.deadlineTimestamp - b.deadlineTimestamp;
+                    }
+                    return b.createdAt - a.createdAt;
+                });
+                return filtered;
+            }
+
+            function formatRelativeTime(timestamp) {
+                const now = Date.now();
+                const diff = timestamp - now;
+                const absDiff = Math.abs(diff);
+                const minutes = Math.floor(absDiff / 60000);
+                const hours = Math.floor(absDiff / 3600000);
+                const days = Math.floor(absDiff / 86400000);
+
+                if (diff < 0) {
+                    // Overdue
+                    if (minutes < 1) return 'только что';
+                    if (minutes < 60) return `просрочено на ${minutes} мин`;
+                    if (hours < 24) return `просрочено на ${hours} ч`;
+                    return `просрочено на ${days} дн`;
+                } else {
+                    // Upcoming
+                    if (minutes < 1) return 'сейчас';
+                    if (minutes < 60) return `через ${minutes} мин`;
+                    if (hours < 24) return `через ${hours} ч`;
+                    if (days === 1) return 'завтра';
+                    if (days < 7) return `через ${days} дн`;
+                    return `через ${days} дн`;
+                }
+            }
+
+            function formatDate(dateStr) {
+                if (!dateStr) return '';
+                const parts = dateStr.split('-');
+                return `${parts[2]}.${parts[1]}.${parts[0]}`;
+            }
+
+            function renderTaskCard(task) {
+                const now = Date.now();
+                const isOverdue = !task.completed && task.deadlineTimestamp < now;
+                const isDueSoon = !task.completed && !isOverdue &&
+                    (task.deadlineTimestamp - now) < 3600000 && (task.deadlineTimestamp - now) > 0;
+                const relativeTime = formatRelativeTime(task.deadlineTimestamp);
+                const formattedDate = formatDate(task.deadlineDate);
+
+                let cardClass = 'task-card';
+                if (task.completed) cardClass += ' completed';
+                if (isOverdue) cardClass += ' overdue';
+                if (isDueSoon) cardClass += ' due-soon';
+
+                let metaBadges = '';
+                if (isOverdue) {
+                    metaBadges +=
+                        `<span class="task-meta-item overdue-badge">⚠️ Просрочено — ${relativeTime}</span>`;
+                } else if (isDueSoon) {
+                    metaBadges +=
+                        `<span class="task-meta-item soon-badge">⏳ Скоро — ${relativeTime}</span>`;
+                } else if (!task.completed) {
+                    metaBadges +=
+                        `<span class="task-meta-item deadline-badge">📅 ${formattedDate} в ${task.deadlineTime}</span>`;
+                } else {
+                    metaBadges +=
+                        `<span class="task-meta-item deadline-badge">📅 ${formattedDate} в ${task.deadlineTime}</span>`;
+                }
+                if (!task.completed) {
+                    metaBadges +=
+                        `<span class="task-meta-item">${relativeTime}</span>`;
+                }
+
+                const photoHtml = task.photo ?
+                    `<img class="task-photo-thumb" src="${task.photo}" alt="Фото" loading="lazy" onclick="event.stopPropagation(); window._openLightbox('${task.photo.replace(/'/g, "\\'")}')" title="Нажмите для просмотра">` :
+                    `<div class="task-photo-placeholder">📷</div>`;
+
+                const checkboxClass = task.completed ? 'custom-checkbox checked' : 'custom-checkbox';
+                const checkboxTitle = task.completed ? 'Нажмите, чтобы убрать галочку (отменить выполнение)' :
+                    'Отметить как выполненное';
+
+                return `
+                <div class="${cardClass}" data-task-id="${task.id}">
+                    <div class="checkbox-wrapper">
+                        <div class="${checkboxClass}" 
+                             title="${checkboxTitle}"
+                             data-toggle-id="${task.id}" 
+                             role="checkbox" 
+                             aria-checked="${task.completed}"
+                             tabindex="0">
+                        </div>
+                    </div>
+                    <div class="task-content">
+                        <span class="task-title">${escapeHtml(task.title)}</span>
+                        <div class="task-meta">${metaBadges}</div>
+                    </div>
+                    ${photoHtml}
+                    <div class="task-actions">
+                        <button class="btn btn-sm" style="background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-secondary);" 
+                                data-edit-id="${task.id}" title="Редактировать">
+                            ✏️
+                        </button>
+                        <button class="btn btn-danger btn-sm" data-delete-id="${task.id}" title="Удалить задачу">
+                            🗑️
+                        </button>
+                    </div>
+                </div>`;
+            }
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            function renderAll() {
+                const filtered = getFilteredTasks();
+                const now = Date.now();
+
+                if (filtered.length === 0) {
+                    taskList.innerHTML = '';
+                    emptyState.style.display = 'block';
+                    if (currentFilter === 'active') {
+                        emptyState.querySelector('h3').textContent = 'Нет активных задач';
+                        emptyState.querySelector('p').textContent = 'Все задачи выполнены! Добавьте новые или посмотрите выполненные.';
+                    } else if (currentFilter === 'completed') {
+                        emptyState.querySelector('h3').textContent = 'Нет выполненных задач';
+                        emptyState.querySelector('p').textContent =
+                            'Здесь появятся задачи, которые вы отметите как выполненные.';
+                    } else {
+                        emptyState.querySelector('h3').textContent = 'Список задач пуст';
+                        emptyState.querySelector('p').textContent =
+                            'Нажмите кнопку «Новая задача», чтобы добавить первую задачу с фото, датой и временем выполнения.';
+                    }
+                } else {
+                    emptyState.style.display = 'none';
+                    taskList.innerHTML = filtered.map(renderTaskCard).join('');
+                }
+
+                // Update stats
+                const total = tasks.length;
+                const completed = tasks.filter(t => t.completed).length;
+                const overdue = tasks.filter(t => !t.completed && t.deadlineTimestamp < now).length;
+                statTotal.textContent = total;
+                statCompleted.textContent = completed;
+                statOverdue.textContent = overdue;
+                countAll.textContent = total;
+                countActive.textContent = total - completed;
+                countCompleted.textContent = completed;
+
+                // Attach event listeners
+                attachCardListeners();
+            }
+
+            function attachCardListeners() {
+                // Checkbox toggles
+                taskList.querySelectorAll('.custom-checkbox[data-toggle-id]').forEach(cb => {
+                    cb.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const id = cb.getAttribute('data-toggle-id');
+                        toggleTaskCompletion(id);
+                    });
+                    cb.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            const id = cb.getAttribute('data-toggle-id');
+                            toggleTaskCompletion(id);
+                        }
+                    });
+                });
+
+                // Edit buttons
+                taskList.querySelectorAll('[data-edit-id]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const id = btn.getAttribute('data-edit-id');
+                        const task = tasks.find(t => t.id === id);
+                        if (task) openModal(task);
+                    });
+                });
+
+                // Delete buttons
+                taskList.querySelectorAll('[data-delete-id]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const id = btn.getAttribute('data-delete-id');
+                        const task = tasks.find(t => t.id === id);
+                        if (task && confirm(
+                                `Вы уверены, что хотите удалить задачу «${task.title}»?\nЭто действие нельзя отменить.`
+                                )) {
+                            deleteTask(id);
+                        }
+                    });
+                });
+
+                // Photo thumbnails
+                taskList.querySelectorAll('.task-photo-thumb').forEach(thumb => {
+                    thumb.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openLightbox(thumb.src);
+                    });
+                });
+            }
+
+            // ──────────────────────────────────────
+            // Lightbox
+            // ──────────────────────────────────────
+            function openLightbox(src) {
+                lightboxImage.src = src;
+                lightboxOverlay.classList.add('active');
+            }
+
+            function closeLightbox() {
+                lightboxOverlay.classList.remove('active');
+                setTimeout(() => { lightboxImage.src = ''; }, 300);
+            }
+
+            // Expose for inline onclick
+            window._openLightbox = openLightbox;
+
+            // ──────────────────────────────────────
+            // Event Listeners
+            // ──────────────────────────────────────
+            themeToggle.addEventListener('click', toggleTheme);
+
+            fabAdd.addEventListener('click', () => openModal(null));
+            addTaskBtnTop.addEventListener('click', () => openModal(null));
+
+            modalClose.addEventListener('click', closeModal);
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) closeModal();
+            });
+
+            lightboxOverlay.addEventListener('click', closeLightbox);
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (lightboxOverlay.classList.contains('active')) {
+                        closeLightbox();
+                    } else if (modalOverlay.classList.contains('active')) {
+                        closeModal();
+                    }
+                }
+            });
+
+            // Photo upload area click
+            photoUploadArea.addEventListener('click', (e) => {
+                if (e.target.classList.contains('photo-remove-btn')) return;
+                photoInput.click();
+            });
+
+            photoInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 10 * 1024 * 1024) {
+                    showToast('⚠️', 'Файл слишком большой! Максимальный размер — 10 МБ.', 'warning-toast');
+                    photoInput.value = '';
+                    return;
+                }
+                try {
+                    const dataUrl = await compressImage(file);
+                    currentPhotoData = dataUrl;
+                    updatePhotoPreview(dataUrl);
+                } catch (err) {
+                    showToast('⚠️', 'Не удалось обработать изображение. Попробуйте другой файл.',
+                    'warning-toast');
+                    photoInput.value = '';
+                }
+            });
+
+            // Form submit
+            taskForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const title = taskTitleInput.value.trim();
+                const date = taskDateInput.value;
+                const time = taskTimeInput.value;
+
+                if (!title) {
+                    showToast('⚠️', 'Пожалуйста, введите название задачи.', 'warning-toast');
+                    taskTitleInput.focus();
+                    return;
+                }
+                if (!date || !time) {
+                    showToast('⚠️', 'Пожалуйста, выберите дату и время выполнения.', 'warning-toast');
+                    return;
+                }
+
+                const deadlineTimestamp = new Date(`${date}T${time}:00`).getTime();
+                if (deadlineTimestamp < Date.now() - 60000) {
+                    const proceed = confirm(
+                        'Выбранная дата и время уже прошли. Всё равно сохранить задачу как просроченную?');
+                    if (!proceed) return;
+                }
+
+                const editId = editingTaskId.value;
+                if (editId) {
+                    // Update existing
+                    updateTask(editId, {
+                        title: title,
+                        deadlineDate: date,
+                        deadlineTime: time,
+                        photo: currentPhotoData,
+                    });
+                    showToast('✏️', 'Задача обновлена!', '');
+                } else {
+                    // Create new
+                    const newTask = createTask(title, date, time, currentPhotoData);
+                    addTask(newTask);
+                    showToast('🎉', 'Задача добавлена!', '');
+                }
+                closeModal();
+            });
+
+            // Filter tabs
+            filterTabs.addEventListener('click', (e) => {
+                const tab = e.target.closest('.filter-tab');
+                if (!tab) return;
+                const filter = tab.getAttribute('data-filter');
+                if (filter && filter !== currentFilter) {
+                    currentFilter = filter;
+                    filterTabs.querySelectorAll('.filter-tab').forEach(t => t.classList.remove(
+                        'active'));
+                    tab.classList.add('active');
+                    renderAll();
+                }
+            });
+
+            // Keyboard shortcut for adding task
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                    e.preventDefault();
+                    if (!modalOverlay.classList.contains('active')) {
+                        openModal(null);
+                    }
+                }
+            });
+
+            // ──────────────────────────────────────
+            // Initialization
+            // ──────────────────────────────────────
+            function init() {
+                loadTasks();
+                const theme = loadTheme();
+                applyTheme(theme);
+                renderAll();
+                requestNotificationPermission();
+
+                // Set default date inputs
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                taskDateInput.value = tomorrow.toISOString().split('T')[0];
+                taskTimeInput.value = '12:00';
+
+                // Start reminder checker
+                setInterval(checkReminders, REMINDER_CHECK_INTERVAL);
+                // Also check shortly after page load (for tasks that became overdue while page was closed)
+                setTimeout(checkReminders, 3000);
+
+                console.log('✅ TaskFlow инициализирован');
+                console.log(`   📌 Загружено задач: ${tasks.length}`);
+                console.log(`   🎨 Тема: ${theme}`);
+                console.log(`   🔔 Проверка напоминаний: каждые ${REMINDER_CHECK_INTERVAL / 1000} сек`);
+                console.log('   💡 Подсказка: Ctrl+N для быстрого добавления задачи');
+            }
+
+            init();
+        })();
+    </script>
+</body>
+</html>
